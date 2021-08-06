@@ -2,7 +2,7 @@
 
 Modeling the language dynamics using Neural Ordinary Differential Equations.  Main objective is to obtain meaningful results from the interpolation over the hidden dynamics learned by the Neural ODE.
 
-## Introduction
+## 0. Introduction
 
 Hidden states in neural networks, specifically in residual networks, recurrent neural networks can be seen as an Euler discretization of a continuous transformation [1] , 
 
@@ -22,6 +22,17 @@ Being inspired by the work of Chen et al [1][3] we propose to use Neural ODE as 
 
 There was no prior work to use Neural ODEs as a technique to make sequence to sequence architecture interpretable. Thus, it is a promising work in that direction.
 
+## Method
+
+### Theoretical Background
+
+
+### Problem Definition
+
+
+### Dataset
+
+### Model
 
 ## Experiments
 
