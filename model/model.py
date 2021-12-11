@@ -1,23 +1,29 @@
-
+import torch
 import torch.nn as nn
-from torchdyn.models import *
-from torchdyn import *
+from torchdyn.models import NeuralODE
 
 # Define encoder
 class Encoder(nn.Module):
-    def __init__(self, emb_dim, hidden_dim):
+    def __init__(self, emb_dim: int, hidden_dim: int):
+        """
+        Define an encoder that takes in a sequence of embeddings and returns a hidden state.
+        Args:
+            emb_dim: dimension of the embeddings
+            hidden_dim: dimension of the hidden state
+        """
         super(Encoder, self).__init__()
         self.rnn = nn.GRU(
             emb_dim,
             hidden_dim,
         )
         self.dropout = nn.Dropout(0.3)
-    def forward(self, x):
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Args:
-            x: Input tensor of shape (batch_size, seq_len, emb_dim)
+            x: input tensor of shape (batch_size, seq_len, emb_dim)
         Returns: 
-            hidden: Hidden tensor of shape (1, batch_size, hidden_dim)
+            hidden: hidden tensor of shape (1, batch_size, hidden_dim)
         """
         x = x.transpose(1, 0) # transform to (seq_len, batch_size, emb_dim)
         _, hidden = self.rnn(self.dropout(x))
@@ -25,8 +31,10 @@ class Encoder(nn.Module):
 
 # Define decoder 
 class Decoder(nn.Module):
-
-    def __init__(self,  hidden_dim, vocab_size):
+    def __init__(self,  hidden_dim: int, vocab_size: int):
+        """
+        Define NeuralODE decoder that takes in a hidden state and returns trajectory.
+        """
         super(Decoder, self).__init__()
         func = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim),
@@ -43,7 +51,7 @@ class Decoder(nn.Module):
         self.fc = nn.Linear(hidden_dim, vocab_size)
         self.dropout = nn.Dropout(0.3)
         
-    def forward(self, hidden, t_span):
+    def forward(self, hidden: torch.Tensor, t_span: torch.Tensor) -> torch.Tensor:
         """
         Args:
             hidden: Hidden vector of shape (1, batch_size, hidden_dim).
@@ -65,12 +73,15 @@ class Decoder(nn.Module):
 
 class Seq2Seq(nn.Module):
     def __init__(self, embedding, encoder, decoder):
+        """
+        Define a Seq2Seq model with an embedding layer, an encoder and a decoder.
+        """
         super(Seq2Seq, self).__init__()
         self.embedding = embedding
         self.encoder = encoder
         self.decoder = decoder
 
-    def forward(self, x, t_span):
+    def forward(self, x: torch.Tensor, t_span: torch.Tensor) -> torch.Tensor:
         """
         Args:
             x: Input sequence tensor of shape (batch_size, seq_len)

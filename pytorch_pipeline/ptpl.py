@@ -13,16 +13,31 @@ import sys
 import random
 
 sys.path.append('../dataset')
-from dataset import *
+from dataset.dataset import custom_dataset
 
-def seed_everything(seed: int):
+from typing import Tuple, Dict
+
+def seed_everything(seed: int) -> None:
+    """
+    Set the random seed for all the randomness in the code.
+    Args:
+        seed: seed to set.
+    """
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
 
 class PyTorchPipeline:
-    def __init__(self, project_name, configs, hparams, model):
+    def __init__(self, project_name: str, configs: Dict, hparams: Dict, model):
+        """
+        Initialize the PyTorchPipeline.
+        Args:
+            project_name: name of the project.
+            configs: configurations of the project.
+            hparams: hyperparameters of the project.
+            model: model to be trained.
+        """
         print(f"PyTorch pipeline for {project_name} is set up")
         ## assertion checks
         self.configs = configs
@@ -39,19 +54,19 @@ class PyTorchPipeline:
             )
         
         # set training details
-        self.criterion = self.configs['criterion'] if 'criterion' in self.configs else None
-        self.optimizer = self.configs['optimizer'] if 'optimizer' in self.configs else None
+        self.criterion = self.configs['criterion'] 
+        self.optimizer = self.configs['optimizer']
 
         # set dataloaders
-        self.train_dataloader = self.configs['train_dataloader'] if 'train_dataloader' in self.configs else None
-        self.val_dataloader = self.configs['val_dataloader'] if 'val_dataloader' in self.configs else None
-        self.test_dataloader = self.configs['test_dataloader'] if 'test_dataloader' in self.configs else None
+        self.train_dataloader = self.configs['train_dataloader']
+        self.val_dataloader = self.configs['val_dataloader']
+        self.test_dataloader = self.configs['test_dataloader'] 
 
         # et cetera
         self.print_logs = self.configs["print_logs"]
 
 
-    def predict(self, batch, state):
+    def predict(self, batch: torch.Tensor, state: str) -> torch.Tensor:
         """
         Pass the input through the model and return the output.
         Args:
@@ -74,7 +89,7 @@ class PyTorchPipeline:
         return output_data
 
 
-    def compute_loss(self, batch, output_data):
+    def compute_loss(self, batch: torch.Tensor, output_data: torch.Tensor) -> torch.Tensor:
         """
         Compute loss.
         Args:
@@ -83,6 +98,7 @@ class PyTorchPipeline:
         Returns:
             loss: loss of the model.
         """
+        assert(self.criterion != None)
         target = batch.to(self.device)
         target_flattened = target.reshape(-1)
         output_data_flattened = output_data.reshape(-1, output_data.shape[-1])
@@ -90,7 +106,7 @@ class PyTorchPipeline:
         return loss
 
 
-    def run(self, batch, state):
+    def run(self, batch: torch.Tensor, state: str) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Perform a forward pass, compute loss, and backpropagate.
         Args:
@@ -111,7 +127,15 @@ class PyTorchPipeline:
 
         return curr_loss, output_data
 
-    def train(self, num_epochs = None, path2save = None):
+    def train(self, num_epochs: int = None, path2save: str = None) -> None:
+        """
+        Perform training and save the model based on the validation split.
+        Args:
+            num_epochs: number of epochs to train.
+            path2save: path to save the model.
+        Returns:
+            loss: loss of the model.
+        """
         if path2save == None:
             print("The path to save the model is not provided. Thus the model weigths will not be saved.")
         assert(self.train_dataloader != None)
@@ -162,7 +186,7 @@ class PyTorchPipeline:
                         || Validation Loss: {val_loss}")
             
 
-    def test(self):
+    def test(self) -> float:
         self.model.eval()
         # prepare dataloader
         dataloader = []
@@ -183,17 +207,30 @@ class PyTorchPipeline:
             total_cnt += batch_size
 
             curr_loss, _ = self.run(batch, "val")
-            cum_loss += curr_loss
+            cum_loss += curr_loss.item() * batch_size
         if self.wb:
             self.wandb_logging(2, "val", [cum_loss])
         return cum_loss/total_cnt
 
-    def save(self, path2save):
+    def save(self, path2save: str) -> None:
+        """
+        Save the model.
+        Args:
+            path2save: path to save the model.
+        """
         print(f"The model is saved under the path {path2save}")
         torch.save(self.model.state_dict(), path2save)
     
-    def load(self, path2load):
-        self.model.load_state_dict(torch.load(path2load))
+    def load(self, path2load: str) -> None:
+        """
+        Load the model.
+        Args:
+            path2load: path to load the model.
+        """
+        if os.path.exists(path2load):
+            self.model.load_state_dict(torch.load(path2load))
+        else:
+            print(f"The path {path2load} does not exist.")
     
 
     def wandb_logging(self, state, mode, args):
