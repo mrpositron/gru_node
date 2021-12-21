@@ -60,7 +60,6 @@ class PyTorchPipeline:
         # set dataloaders
         self.train_dataloader = self.configs['train_dataloader']
         self.val_dataloader = self.configs['val_dataloader']
-        self.test_dataloader = self.configs['test_dataloader'] 
 
         # et cetera
         self.print_logs = self.configs["print_logs"]
@@ -127,7 +126,7 @@ class PyTorchPipeline:
 
         return curr_loss, output_data
 
-    def train(self, num_epochs: int = None, path2save: str = None) -> None:
+    def train(self, num_epochs: int, path2save: str) -> None:
         """
         Perform training and save the model based on the validation split.
         Args:
