@@ -4,7 +4,7 @@ from collections import defaultdict
 from tqdm import tqdm
 import os
 
-from utils import *
+from .utils import *
 ## PyTorch ##
 import torch
 from torch.utils.data import DataLoader, Dataset
