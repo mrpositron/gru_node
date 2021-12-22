@@ -1,7 +1,3 @@
-"""
-Main 
-"""
-
 import sys
 import os
 
@@ -11,8 +7,6 @@ from model.model import *
 
 import torch
 import torch.nn as nn
-
-from torchdyn.models import NeuralODE
 
 import random
 from tqdm import tqdm
@@ -24,10 +18,9 @@ if __name__ == "__main__":
 
 
     hparams = {
-        'wb' : False,
         'hidden_dim': hidden_dim,
         'emb_dim': emb_dim,
-        'num_epochs': 1,
+        'num_epochs': 3,
         'num_batches' : 32,
         'path2save': "./weights/hidden_size_" + str(hidden_dim) + "_emb_dim_" + str(emb_dim) + ".pt",
         'learning_rate': 1e-3,
@@ -71,6 +64,7 @@ if __name__ == "__main__":
     encoder = Encoder(emb_dim, hidden_dim)
     decoder = Decoder(hidden_dim, vocab_size)
     model = Seq2Seq(embedding, encoder, decoder)
+    model.to(device)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr = 1e-3)
@@ -84,7 +78,7 @@ if __name__ == "__main__":
             'train_dataloader': train_data,
             'val_dataloader': val_data,
             'print_logs': True,
-            'wb': hparams['wb'],
+            'wb': True,
         },
         hparams = hparams,
         model = model,
