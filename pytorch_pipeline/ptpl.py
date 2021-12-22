@@ -12,7 +12,6 @@ import os
 import sys
 import random
 
-sys.path.append('../dataset')
 from dataset.dataset import custom_dataset
 
 from typing import Tuple, Dict
@@ -135,12 +134,6 @@ class PyTorchPipeline:
         Returns:
             loss: loss of the model.
         """
-        if path2save == None:
-            print("The path to save the model is not provided. Thus the model weigths will not be saved.")
-        assert(self.train_dataloader != None)
-        assert(num_epochs != None)
-        self.model.train()
-
         min_loss = 1e10
 
         for epoch in range(num_epochs):
@@ -169,7 +162,7 @@ class PyTorchPipeline:
                 if self.wb:
                     self.wandb_logging(0, "train", [curr_loss])
             if self.wb:
-                self.wandb_logging(1, "train", [cum_loss, epoch])
+                self.wandb_logging(1, "train", [cum_loss/total_cnt, epoch])
             
             val_loss = self.test()
             if val_loss < min_loss:
@@ -208,7 +201,7 @@ class PyTorchPipeline:
             curr_loss, _ = self.run(batch, "val")
             cum_loss += curr_loss.item() * batch_size
         if self.wb:
-            self.wandb_logging(2, "val", [cum_loss])
+            self.wandb_logging(2, "val", [cum_loss/total_cnt])
         return cum_loss/total_cnt
 
     def save(self, path2save: str) -> None:
@@ -254,10 +247,6 @@ class PyTorchPipeline:
                     mode + "/cum_loss": args[0],
                     }
                 )
-
-
-
-
 
 if __name__ == "__main__":
     pass
